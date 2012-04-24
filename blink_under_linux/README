@@ -1,0 +1,8 @@
+The delay function doesn't seem to work correctly under linux.
+This causes the blink example to malfunction.
+
+People smarter than me have addressed this issue here:
+https://wiki.archlinux.org/index.php/Arduino#delay.28.29_function_doesn.27t_work
+and have provided to solutions (there might be others too).
+
+This sketch allows delay to work when compiling under linux.
