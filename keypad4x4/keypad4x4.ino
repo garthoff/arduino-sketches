@@ -20,6 +20,14 @@ byte colPins[COLS] = {
 
 Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
 
+const int valves[8] = { 0,1,2,3,4,5,6,7 }; //pins of valves on the Arduino
+int times[8];  //stores times as minutes
+int valve;  //used for valve increment
+
+char keypresses[4] = {0,0,0,0}; //store keypresses
+int mode = 0; // 0 is normal, 1 is reprogram
+int i = 0; //just a counter
+
 void reprogram(char zone, int time) {
   Serial.print("Zone is ");
   Serial.println(zone);
@@ -32,22 +40,26 @@ void reprogram(char zone, int time) {
   }
 }
 
+void water(int valve, int minutes) {
+  unsigned long millitime = minutes * 60000;
+  digitalWrite(valve, HIGH);
+  delay(millitime);
+  digitalWrite(valve, LOW);
+  delay(60000); //wait a minute, this may need to be increased for real life
+}
+
 void setup()
 {
   Serial.begin(9600);
 }
 
-char keypresses[4] = {0,0,0,0}; //store keypresses
-int mode = 0; // 0 is normal, 1 is reprogram
-int i = 0; //just a counter
-
 void loop()
 {
   char key = keypad.getKey();
-  
+
   if (key != NO_KEY) {
     
-    //Programming Mode 
+    //Enter Programming Mode 
     if ((key=='*') && (i==0)) {
       keypresses[i] = key;
       mode = 1;
@@ -77,4 +89,5 @@ void loop()
       i = 0;
     }
   }
+
 }
