@@ -1,3 +1,5 @@
+#include <avr/sleep.h>  //powerdown library
+
 #define PIN_SCE   A1
 #define PIN_RESET A0
 #define PIN_DC    A2
@@ -6,9 +8,12 @@
 
 #define LCD_C     LOW
 #define LCD_D     HIGH
+#define LCD_CMD   0
 
 #define LCD_X     84
 #define LCD_Y     48
+
+int a = 0;
 
 static const byte ASCII[][5] =
 {
@@ -226,13 +231,21 @@ void LcdClear(void)
 
 void LcdInitialise(void)
 {
-  pinMode(PIN_SCE, OUTPUT);
+  pinMode(PIN_SCE,   OUTPUT);
   pinMode(PIN_RESET, OUTPUT);
-  pinMode(PIN_DC, OUTPUT);
-  pinMode(PIN_SDIN, OUTPUT);
-  pinMode(PIN_SCLK, OUTPUT);
+  pinMode(PIN_DC,    OUTPUT);
+  pinMode(PIN_SDIN,  OUTPUT);
+  pinMode(PIN_SCLK,  OUTPUT);
+
   digitalWrite(PIN_RESET, LOW);
+ // delay(1);
   digitalWrite(PIN_RESET, HIGH);
+
+  LcdWrite( LCD_CMD, 0x21 );  // LCD Extended Commands.
+  LcdWrite( LCD_CMD, 0xBf );  // Set LCD Vop (Contrast). //B1
+  LcdWrite( LCD_CMD, 0x04 );  // Set Temp coefficent. //0x04
+  LcdWrite( LCD_CMD, 0x14 );  // LCD bias mode 1:48. //0x13
+  LcdWrite( LCD_CMD, 0x0C );  // LCD in normal mode. 0x0d for inverse
   LcdWrite(LCD_C, 0x20);
   LcdWrite(LCD_C, 0x0C);
 }
@@ -251,6 +264,46 @@ void LcdWrite(byte dc, byte data)
   digitalWrite(PIN_SCE, LOW);
   shiftOut(PIN_SDIN, PIN_SCLK, MSBFIRST, data);
   digitalWrite(PIN_SCE, HIGH);
+}
+
+// gotoXY routine to position cursor 
+// x - range: 0 to 84
+// y - range: 0 to 5
+
+void gotoXY(int x, int y)
+{
+  LcdWrite( 0, 0x80 | x);  // Column.
+  LcdWrite( 0, 0x40 | y);  // Row.  
+
+}
+
+
+
+void drawLine(void)
+{
+  unsigned char  j;  
+   for(j=0; j<84; j++) // top
+	{
+          gotoXY (j,0);
+	  LcdWrite (1,0x01);
+  } 	
+  for(j=0; j<84; j++) //Bottom
+	{
+          gotoXY (j,5);
+	  LcdWrite (1,0x80);
+  } 	
+
+  for(j=0; j<6; j++) // Right
+	{
+          gotoXY (83,j);
+	  LcdWrite (1,0xff);
+  } 	
+	for(j=0; j<6; j++) // Left
+	{
+          gotoXY (0,j);
+	  LcdWrite (1,0xff);
+  }
+
 }
 
 /***********************************
@@ -288,7 +341,6 @@ Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
 char keypresses[4] = {
   0,0,0,0}; //store keypresses
 int mode = 0; // 0 is normal, 1 is reprogram
-int i = 0; //just a counter
 
 void reprogram(char zone, int time) {
   LcdString("Zone is \n");
@@ -304,16 +356,77 @@ void reprogram(char zone, int time) {
 }
 
 
-void setup(void)
+/*******
+GARDEN
+*******/
+
+const int valves[8] = { 5,6,7,8,9,10,11,12 }; //pins of valves on the Arduino
+
+int times[8] = { 1,1,1,1,1,1,1,1 };  //stores times as minutes
+//int valve;  //used for valve increment
+int i;  //counter, used to increment from valve to valve
+
+void water(int valve, int minutes) {
+  Serial.print("Valve: \t");
+  Serial.print(i+1); //the physical valve
+  Serial.print("\tArduino Pin: \t");
+  Serial.print(valve); //the valve pin
+  Serial.print("\tTime in minutes: \t");
+  Serial.println(minutes);  //time
+  
+  LcdClear();
+  gotoXY(0,0);
+  LcdString("Gardening: ");
+  
+  char msg[2];
+  sprintf(msg, "%d", i+1);
+  gotoXY(10,10);
+  LcdString(msg);
+
+  int remainSec;
+  int remainMin;
+  char timeremain[6];
+  sprintf(timeremain, "%d:%d", remainMin, remainSec);
+  gotoXY(20,20);
+  LcdString(timeremain);
+  
+  unsigned long millitime = minutes * 6000;
+  
+  digitalWrite(valve, HIGH);
+  delay(millitime);
+  digitalWrite(valve, LOW);
+  LcdClear();
+  gotoXY(40,40);
+  LcdString("Tank Refill");
+  delay(6000); //wait a minute, this may need to be increased for real life
+  
+}
+
+void sleepNow() {
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+  sleep_enable();
+  ADCSRA &= ~(1 << ADEN);    // Disable ADC
+  PRR = 0xFF;   // Power down functions
+  sleep_mode();
+}
+
+void setup()
 {
   LcdInitialise();
   LcdClear();
-  LcdString("Hello World!");
+//  gotoXY(0,0);
+//  LcdString("Initializing");
+  
+  Serial.begin(9600);
+     
+  for (i = 0; i < 8; i++) {
+    pinMode(valves[i],OUTPUT);
+  }
 }
 
-void loop(void)
+void loop()
 {
-  char key = keypad.getKey();
+  /*char key = keypad.getKey();
 
  if (key != NO_KEY) {
     
@@ -341,7 +454,29 @@ void loop(void)
       mode = 0;
       i = 0;
     }
-  }
+  }*/
+  
+//  for (i = 0; i < 8; i++) {
+//    water(valves[i], times[i]);
+//   }
+gotoXY(0,0);
+if (i!=1) {
+  gotoXY(0,0);
+  LcdString("a");
+  gotoXY(15,1);
+  LcdString("b");
+  gotoXY(30,2);
+  LcdString("c");
+  gotoXY(45,3);
+  LcdString("d");
+  gotoXY(60,4);
+  LcdString("e");
+  gotoXY(74,5);
+  LcdString("f");
+
+  i = 1;
+}
+//  sleepNow(); //powerdown
 }
 
 
