@@ -1,8 +1,8 @@
-#define PIN_SCE   7
-#define PIN_RESET 6
-#define PIN_DC    5
-#define PIN_SDIN  4
-#define PIN_SCLK  3
+#define PIN_SCE   A1
+#define PIN_RESET A0
+#define PIN_DC    A2
+#define PIN_SDIN  A3
+#define PIN_SCLK  A4
 
 #define LCD_C     LOW
 #define LCD_D     HIGH
@@ -167,5 +167,4 @@ void setup(void)
 void loop(void)
 {
 
-  LcdString("bill");
 }

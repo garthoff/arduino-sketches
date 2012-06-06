@@ -8,21 +8,42 @@
 
 */
  
+#include <EEPROM.h>  //EEPROM read/write library
 #include <avr/sleep.h>  //powerdown library
+
 
 const int valves[8] = { 5,6,7,8,9,10,11,12 }; //pins of valves on the Arduino
 
 int times[8] = { 10,10,10,10,10,10,10,10 };  //stores times as minutes
 //int valve;  //used for valve increment
 int i;  //counter, used to increment from valve to valve
+int tankLed = 13;
 
 void setup()
 {
   Serial.begin(9600);
-     
+
   for (i = 0; i < 8; i++) {
     pinMode(valves[i],OUTPUT);
+    pinMode(tankLed, OUTPUT);
   }
+  
+  //emulate something like a boot process, for fun  
+  digitalWrite(tankLed, HIGH);
+  delay(6000);
+  digitalWrite(tankLed, LOW);
+
+  
+  int address = 0;
+  byte value;
+  for (address = 0; address < 61; address++) {
+    value = EEPROM.read(address);
+    Serial.print(address);
+    Serial.print("\t");
+    Serial.print(value, DEC);
+    Serial.println();
+  }
+
   
 }
 
@@ -36,10 +57,15 @@ void water(int valve, int minutes) {
   
   unsigned long millitime = minutes * 60000;
   
+  //open the valve and water a specific garden area
   digitalWrite(valve, HIGH);
   delay(millitime);
   digitalWrite(valve, LOW);
+  
+  //allow some time for the water tank to refill
+  digitalWrite(tankLed, HIGH);
   delay(60000); //wait a minute, this may need to be increased for real life
+  digitalWrite(tankLed, LOW);
 }
 
 void sleepNow() {
