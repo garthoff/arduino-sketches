@@ -1,0 +1,17 @@
+1, pin5, ypogeiaki (dad 5)
+2, pin6, stalaktes (dad 7) - galazio
+3, pin7, mprosta/saloni (dad 2)
+4, pin8, barbeque (dad 6) kafe
+5, pin9, piso (dad 1)
+6, pin10, AKYRO
+7, pin11, tsika/manolia (dad 4) - kitrino
+8, pin12, platanos (dad 3) ???? - arduino check
+
+
+1, pin5, piso, dad 1 - OK, aspro
+2, pin6, mprosta/saloni, dad2 - OK, prasino
+3, pin7, platanos, dad3 - OK, aspro
+4, pin8, tsika/manolia - dad4 0 OK, kitrino
+5, pin9, ypogeiaki, dad 5 - OK, kokkino
+6, pin10, barbeque, dad6 - OK, kafe
+7, pin11, stalaktes, dad7 - OK, galazio

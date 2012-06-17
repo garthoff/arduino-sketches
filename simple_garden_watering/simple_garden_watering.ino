@@ -12,9 +12,9 @@
 #include <avr/sleep.h>  //powerdown library
 
 
-const int valves[8] = { 5,6,7,8,9,10,11,12 }; //pins of valves on the Arduino
+const int valves[7] = { 5,6,7,8,9,10,11 }; //pins of valves on the Arduino
 
-int times[8] = { 10,10,10,10,10,10,10,10 };  //stores times as minutes
+int times[7] = { 2,3,5,4,4,4,2 };  //stores times as minutes
 //int valve;  //used for valve increment
 int i;  //counter, used to increment from valve to valve
 int tankLed = 13;
@@ -23,7 +23,7 @@ void setup()
 {
   Serial.begin(9600);
 
-  for (i = 0; i < 8; i++) {
+  for (i = 0; i < 7; i++) {
     pinMode(valves[i],OUTPUT);
     pinMode(tankLed, OUTPUT);
   }
@@ -78,7 +78,7 @@ void sleepNow() {
 
 void loop()
 {
-  for (i = 0; i < 8; i++) {
+  for (i = 0; i < 7; i++) {
     water(valves[i], times[i]);
   }
   
