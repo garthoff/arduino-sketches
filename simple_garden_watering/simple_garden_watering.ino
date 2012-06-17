@@ -17,7 +17,7 @@ const int valves[8] = { 5,6,7,8,9,10,11,12 }; //pins of valves on the Arduino
 int times[8] = { 10,10,10,10,10,10,10,10 };  //stores times as minutes
 //int valve;  //used for valve increment
 int i;  //counter, used to increment from valve to valve
-int tankLed = 13;
+int tankLed = 13; //light a led when the water tank refills
 
 void setup()
 {
