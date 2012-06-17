@@ -14,7 +14,7 @@
 
 const int valves[7] = { 5,6,7,8,9,10,11 }; //pins of valves on the Arduino
 
-int times[7] = { 2,3,5,4,4,4,2 };  //stores times as minutes
+int times[7] = { 60,90,150,120,120,120,60 };  //stores times as seconds
 //int valve;  //used for valve increment
 int i;  //counter, used to increment from valve to valve
 int tankLed = 13; //light a led when the water tank refills
@@ -47,15 +47,15 @@ void setup()
   
 }
 
-void water(int valve, int minutes) {
+void water(int valve, int seconds) {
   Serial.print("Valve: \t");
   Serial.print(i+1); //the physical valve
   Serial.print("\tArduino Pin: \t");
   Serial.print(valve); //the valve pin
   Serial.print("\tTime in minutes: \t");
-  Serial.println(minutes);  //time
+  Serial.println(seconds);  //time
   
-  unsigned long millitime = minutes * 60000;
+  unsigned long millitime = seconds * 1000;
   
   //open the valve and water a specific garden area
   digitalWrite(valve, HIGH);
