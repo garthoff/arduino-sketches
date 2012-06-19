@@ -14,7 +14,7 @@
 
 const int valves[7] = { 5,6,7,8,9,10,11 }; //pins of valves on the Arduino
 
-int times[7] = { 60,90,150,120,120,120,60 };  //stores times as seconds
+int times[7] = { 1,90,150,120,120,120,60 };  //stores times as seconds
 //int valve;  //used for valve increment
 int i;  //counter, used to increment from valve to valve
 int tankLed = 13; //light a led when the water tank refills
@@ -30,7 +30,7 @@ void setup()
   
   //emulate something like a boot process, for fun  
   digitalWrite(tankLed, HIGH);
-  delay(6000);
+  delay(15000);
   digitalWrite(tankLed, LOW);
 
   
