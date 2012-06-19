@@ -30,20 +30,22 @@ void setup()
   
   //emulate something like a boot process, for fun  
   digitalWrite(tankLed, HIGH);
+  Serial.println("Starting in 15sec");
   delay(15000);
   digitalWrite(tankLed, LOW);
+  Serial.println("Started");
 
   
   int address = 0;
   byte value;
-  for (address = 0; address < 61; address++) {
+/*  for (address = 0; address < 61; address++) {
     value = EEPROM.read(address);
     Serial.print(address);
     Serial.print("\t");
     Serial.print(value, DEC);
     Serial.println();
   }
-
+*/
   
 }
 
@@ -52,10 +54,13 @@ void water(int valve, int seconds) {
   Serial.print(i+1); //the physical valve
   Serial.print("\tArduino Pin: \t");
   Serial.print(valve); //the valve pin
-  Serial.print("\tTime in minutes: \t");
+  Serial.print("\tTime in seconds: \t");
   Serial.println(seconds);  //time
   
-  unsigned long millitime = seconds * 1000;
+  unsigned long millitime = 0;
+  millitime = seconds * 1000;
+  
+  Serial.println(millitime);
   
   //open the valve and water a specific garden area
   digitalWrite(valve, HIGH);
@@ -64,8 +69,10 @@ void water(int valve, int seconds) {
   
   //allow some time for the water tank to refill
   digitalWrite(tankLed, HIGH);
-  delay(60000); //wait a minute, this may need to be increased for real life
+  Serial.println("Tank fill");
+  delay(6000); //wait a minute, this may need to be increased for real life
   digitalWrite(tankLed, LOW);
+  Serial.println("Tank Ok");
 }
 
 void sleepNow() {
