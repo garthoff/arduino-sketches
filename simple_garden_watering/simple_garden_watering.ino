@@ -5,17 +5,21 @@
  A delay between them is needed to make sure that the water tank doesn't empty.
  Each valve can stay open for a specified amount of time.
  1 minute = 60000 milliseconds
-
-*/
  
+ */
+
 #include <EEPROM.h>  //EEPROM read/write library
 #include <avr/sleep.h>  //powerdown library
 
 
-const int valves[7] = { 5,6,7,8,9,10,11 }; //pins of valves on the Arduino
+const int valves[7] = { 
+  5,6,7,8,9,10,11 }; //pins of valves on the Arduino
 
-int times[7] = { 1,90,150,120,120,120,60 };  //stores times as seconds
-//int valve;  //used for valve increment
+int human_times[7] = { 
+  60,90,150,120,120,120,60 };  //stores times as seconds
+  
+unsigned long water_times[7];
+
 int i;  //counter, used to increment from valve to valve
 int tankLed = 13; //light a led when the water tank refills
 
@@ -25,9 +29,15 @@ void setup()
 
   for (i = 0; i < 7; i++) {
     pinMode(valves[i],OUTPUT);
-    pinMode(tankLed, OUTPUT);
+    water_times[i] = human_times[i] * 1000;
+    Serial.print("Valve: \t");
+    Serial.print(i+1); //the physical valve
+    Serial.print("\tTime in seconds: \t");
+    Serial.println(water_times[i]);  //time
   }
-  
+
+  pinMode(tankLed, OUTPUT);
+
   //emulate something like a boot process, for fun  
   digitalWrite(tankLed, HIGH);
   Serial.println("Starting in 15sec");
@@ -35,38 +45,33 @@ void setup()
   digitalWrite(tankLed, LOW);
   Serial.println("Started");
 
-  
-  int address = 0;
-  byte value;
-/*  for (address = 0; address < 61; address++) {
-    value = EEPROM.read(address);
-    Serial.print(address);
-    Serial.print("\t");
-    Serial.print(value, DEC);
-    Serial.println();
-  }
-*/
-  
+
+  /*  int address = 0;
+   byte value;
+   for (address = 0; address < 61; address++) {
+   value = EEPROM.read(address);
+   Serial.print(address);
+   Serial.print("\t");
+   Serial.print(value, DEC);
+   Serial.println();
+   }
+   */
+
 }
 
-void water(int valve, int seconds) {
+void water(int valve, unsigned long watering_time) {
   Serial.print("Valve: \t");
   Serial.print(i+1); //the physical valve
   Serial.print("\tArduino Pin: \t");
   Serial.print(valve); //the valve pin
-  Serial.print("\tTime in seconds: \t");
-  Serial.println(seconds);  //time
-  
-  unsigned long millitime = 0;
-  millitime = seconds * 1000;
-  
-  Serial.println(millitime);
-  
+  Serial.print("\tTime in milliseconds: \t");
+  Serial.println(watering_time);  //time
+
   //open the valve and water a specific garden area
   digitalWrite(valve, HIGH);
-  delay(millitime);
+  delay(watering_time);
   digitalWrite(valve, LOW);
-  
+
   //allow some time for the water tank to refill
   digitalWrite(tankLed, HIGH);
   Serial.println("Tank fill");
@@ -86,10 +91,11 @@ void sleepNow() {
 void loop()
 {
   for (i = 0; i < 7; i++) {
-    water(valves[i], times[i]);
+    water(valves[i], water_times[i]);
   }
-  
+
   sleepNow(); //powerdown
 }
+
 
 
