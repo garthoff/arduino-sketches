@@ -32,6 +32,13 @@ int water_times[7] = {
 int i;  //counter, used to increment from valve to valve
 int tankLed = 13; //light a led when the water tank refills
 
+void delaySeconds(unsigned long _seconds){
+  while (_seconds > 0){
+    delay(1000);
+    _seconds--;
+  }
+}
+
 void water(int valve, int watering_time_in_seconds) {
   Serial.print("Valve: \t");
   Serial.print(i+1); //the physical valve
@@ -51,13 +58,6 @@ void water(int valve, int watering_time_in_seconds) {
   delaySeconds(60); //wait a minute, this may need to be increased for real life
   digitalWrite(tankLed, LOW);
   Serial.println("Tank filling stopped.");
-}
-
-void delaySeconds(unsigned long _seconds){
-  while (_seconds > 0){
-    delay(1000);
-    _seconds--;
-  }
 }
 
 void sleepNow() {
