@@ -68,16 +68,30 @@
 #include <LiquidCrystal.h>
 #include <PS2Keyboard.h>
 
+#include "Ultrasonic.h"
+Ultrasonic ultrasonic(12,13);
+
+#include "DHT.h"
+#define DHTPIN 8     // what pin we're connected to
+
+#define DHTTYPE DHT22   // DHT 22  (AM2302)
+DHT dht(DHTPIN, DHTTYPE);
+
 //initialize keyboard
 const int DataPin = 7;
 const int IRQpin =  2;
 PS2Keyboard keyboard;
 
 // initialize the library with the numbers of the interface pins
-LiquidCrystal lcd(12, 11, 5, 4, 3, 6);
+LiquidCrystal lcd(10, 9, 5, 4, 3, 6);
 
 //PIR
-const int pirPin = 8;
+const int pirPin = 11;
+
+//RTC
+#include <Wire.h>
+#include "RTClib.h"
+RTC_DS1307 RTC;
 
 void setup() {
   // set up the LCD's number of columns and rows: 
@@ -90,6 +104,14 @@ void setup() {
   keyboard.begin(DataPin, IRQpin);
   Serial.begin(9600);
   Serial.println("Keyboard Test:");
+  
+  //RTC
+  Wire.begin();
+  RTC.begin();
+  
+  //DHT22
+  Serial.println("DHTxx test!");
+  dht.begin();
   
   //Pin Modes
   pinMode(pirPin, INPUT);
@@ -105,9 +127,29 @@ void loop() {
   // (note: line 1 is the second row, since counting begins with 0):
   //  lcd.setCursor(0, 1);
   
-  // print the number of seconds since reset:
-  //  lcd.print(millis()/1000);
-
+    lcd.clear();
+    DateTime now = RTC.now();
+    lcd.setCursor(0,0);
+    lcd.print(now.day() ,DEC);
+    lcd.setCursor(2,0);
+    lcd.print("/");
+    lcd.setCursor(3,0);
+    lcd.print(now.month(), DEC);
+    lcd.setCursor(5,0);
+    lcd.print("/");
+    lcd.setCursor(6,0);
+    lcd.print(now.year() ,DEC);
+    lcd.setCursor(11,0);
+    lcd.print(now.hour() ,DEC);
+    lcd.setCursor(13,0);
+    lcd.print(":");
+    lcd.setCursor(14,0);
+    lcd.print(now.minute() ,DEC);
+    lcd.setCursor(16,0);
+    lcd.print(":");
+    lcd.setCursor(17,0);
+    lcd.print(now.second() ,DEC);
+    
   if (keyboard.available()) {
 
     lcd.setCursor(lcdCursor,2);
@@ -156,6 +198,26 @@ void loop() {
     }
   }
   
+  // Reading temperature or humidity takes about 250 milliseconds!
+  // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
+  float h = dht.readHumidity();
+  float t = dht.readTemperature();
+  
+  // check if returns are valid, if they are NaN (not a number) then something went wrong!
+  if (isnan(t) || isnan(h)) {
+    lcd.setCursor(0,1);
+    lcd.print("Failed to read from DHT");
+  } else {
+    lcd.setCursor(0,1);
+    lcd.print("Hum:"); 
+    lcd.print(h);
+    lcd.print("%");
+    lcd.setCursor(10,1);
+    lcd.print("Tem:"); 
+    lcd.print(t);
+    lcd.println("c");
+  }
+
   motionDetect = digitalRead(pirPin);
   if (motionDetect == HIGH) {
     lcd.setCursor(0,3);
@@ -164,10 +226,14 @@ void loop() {
   } else {
     if (pirState == HIGH) {
       lcd.setCursor(0,3);
-      lcd.print("Motion Ended");
+      lcd.print("Motion Ended   ");
       pirState = LOW;
     }
   }
+
+  lcd.setCursor(15, 3);
+  lcd.print(ultrasonic.Ranging(CM));
+  lcd.print("cm");
 }
 
 

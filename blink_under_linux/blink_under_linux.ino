@@ -1,20 +1,24 @@
+#include <Arduino.h>
 /*
   Blink
   Turns on an LED on for one second, then off for one second, repeatedly.
  
   This example code is in the public domain.
  */
+ 
+#define LED 3
 
 void setup() {                
   // initialize the digital pin as an output.
-  // Pin 13 has an LED connected on most Arduino boards:
-  pinMode(13, OUTPUT);     
+  // Pin LED has an LED connected on most Arduino boards:
+  pinMode(LED, OUTPUT);     
   Serial.begin(9600);
 }
 
 void loop() {
-  digitalWrite(13, HIGH);   // set the LED on
-  delay(100);              // wait for a second
-  digitalWrite(13, LOW);    // set the LED off
-  delay(50);              // wait for a second
+  digitalWrite(LED, HIGH);   // set the LED on
+  delay(1000);              // wait for a second
+  digitalWrite(LED, LOW);    // set the LED off
+  delay(500);              // wait for a second
+  Serial.println("dude");
 }
