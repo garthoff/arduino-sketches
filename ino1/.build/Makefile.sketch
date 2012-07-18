@@ -1,0 +1,14 @@
+
+
+
+
+
+.build/src/sketch.cpp : src/sketch.ino
+	@mkdir -p .build/src
+	@echo [93msrc/sketch.ino[0m
+	@/usr/bin/ino preproc  -o $@ $^
+
+
+all : .build/src/sketch.cpp
+	@true
+
