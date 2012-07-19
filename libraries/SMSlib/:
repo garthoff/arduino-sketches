@@ -1,0 +1,25 @@
+#include "Arduino.h"
+#include "SMSlib.h"
+
+void SendSMS::SendSMS()
+{
+  StartSMS();
+}
+
+void SendSMS::StartSMS()
+{
+  cell.println("AT+CMGF=1"); // set SMS mode to text
+  cell.print("AT+CMGS=\"");
+  cell.print(mobileRecipient);
+  cell.println("\"");
+  delay(100);
+}
+
+void SendSMS::EndSMS()
+{
+  delay(100);
+  cell.write(26);
+  delay(15000);
+  Serial.print("message sent to: ");
+  Serial.println(mobileRecipient);
+}
