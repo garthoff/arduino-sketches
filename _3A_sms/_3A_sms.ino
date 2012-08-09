@@ -51,7 +51,7 @@ void loop(){
     textmessage = arapstore;
     textmessage += fridgeId;
     for (int i = 0; i < peopleToNotify; i++) {
-      SendSMS(i);
+//      SendSMS(i);
     }
   }
 }

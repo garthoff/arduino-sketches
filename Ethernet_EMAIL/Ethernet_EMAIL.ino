@@ -24,7 +24,8 @@ byte mac[] = {
 IPAddress ip(192,168,8,198); // ip in lan
 IPAddress server(192,168,1,11); //kronos
 byte server1[] = { 
-  192, 168, 1, 11 };
+//  192, 168, 1, 11 };
+  194, 30, 193, 52 };
 EthernetClient client;
 
 //String textmessage = String();
