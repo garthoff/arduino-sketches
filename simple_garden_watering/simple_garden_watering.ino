@@ -26,8 +26,7 @@ const int valves[7] = {
   5,6,7,8,9,10,11 }; //pins of valves on the Arduino
 
 int water_times[7] = { 
-//  60,90,150,120,120,120,60 };  //stores times as seconds
-  0,30,150,0,120,120,60 };
+  150,300,300,180,180,180,60 };  //stores times as seconds
 
 int i;  //counter, used to increment from valve to valve
 int tankLed = 13; //light a led when the water tank refills
@@ -85,7 +84,7 @@ void setup()
   //emulate something like a boot process, for fun  
   digitalWrite(tankLed, HIGH);
   Serial.println("Starting in 30sec");
-  delaySeconds(30);
+  delaySeconds(60);
   digitalWrite(tankLed, LOW);
   Serial.println("Started");
 
@@ -94,7 +93,9 @@ void setup()
 void loop()
 {
   for (i = 0; i < 7; i++) {
-    water(valves[i], water_times[i]);
+    if(water_times[i] != 0) {
+      water(valves[i], water_times[i]);
+    }
   }
 
   sleepNow(); //powerdown
