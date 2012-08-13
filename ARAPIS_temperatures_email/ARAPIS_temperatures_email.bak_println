@@ -7,8 +7,8 @@
 #define _STORE "LAB"
 
 //#define _SMTP_HELO "HELO KRONOS" //needs to be teste
-#define _SMTP_HELO "HELO smtp.hol.gr\r\n"
-#define _SMTP_FROM "MAIL FROM: <seremetis@hol.gr>\r\n"
+#define _SMTP_HELO "HELO smtp.hol.gr"
+#define _SMTP_FROM "MAIL FROM: <seremetis@hol.gr>"
 
 #define _DEBUGMODE 1 //set to 1 for debug mode, it prints more stuff to the serial and increases sketch size
 #define _SETMODE 1 //use this to set alarm thresholds
@@ -87,7 +87,7 @@ void setup() {
   //Initialize GSM Module
   cell.begin(9600);
   delay(35000); //insert 35sec delay for the SIM card to connect to the network
-  cell.print("AT+SBAND=4\r\n"); //Set GSM to Cosmote/Wind. Look here: http://roamtheworldcellphones.com/gsmgreece
+  cell.println("AT+SBAND=4"); //Set GSM to Cosmote/Wind. Look here: http://roamtheworldcellphones.com/gsmgreece
   delay(500);
   //GSM should be fine by now
 
@@ -103,17 +103,17 @@ void setup() {
 #if _DEBUGMODE
   // so I can keep track of what is loaded
   Serial.print("email with hol of temp sensors\nlocal ip: ");
-  Serial.print(Ethernet.localIP());
+  Serial.println(Ethernet.localIP());
 
   // locate devices on the bus
-  Serial.print("\r\nLocating devices...\nFound ");
+  Serial.print("Locating devices...\nFound ");
 //  Serial.print("Found ");
   Serial.print(sensors.getDeviceCount(), DEC);
-  Serial.print(" devices.\nParasite: \r\n");
+  Serial.println(" devices.\nParasite: ");
   // report parasite power requirements
 //  Serial.print("Parasite: "); 
-  if (sensors.isParasitePowerMode()) Serial.print("ON\r\n");
-  else Serial.print("OFF\r\n");
+  if (sensors.isParasitePowerMode()) Serial.println("ON");
+  else Serial.println("OFF");
 #endif
 
   // assign address manually.  the addresses below will beed to be changed
@@ -145,18 +145,17 @@ void setup() {
     // assigns the first address found to t1
     if (!oneWire.search(thermos[i])) {
       Serial.print("unable to find"); //found an error
-      Serial.print(i);
+      Serial.println(i);
     }
-    Serial.print("\r\nAddr: ");
+    Serial.print("Addr: ");
     printAddress(thermos[i]);
-//    Serial.print("\r\n");
+    Serial.println();
 
     // set the resolution to 9 bit
     sensors.setResolution(thermos[i], TEMPERATURE_PRECISION);
 
-    Serial.print("\r\nResol:");
-    Serial.print(sensors.getResolution(thermos[i]), DEC); 
-    Serial.print("\r\n");
+    Serial.print("Resol:");
+    Serial.println(sensors.getResolution(thermos[i]), DEC); 
   }
 
 #if _SETMODE
@@ -226,7 +225,7 @@ void printData(DeviceAddress deviceAddress)
   //Serial.println(temp1);
 //  char temp[5];
 //  sprintf(temp, " %f", myGetTemperature(deviceAddress));
-  Serial.print(myGetTemperature(deviceAddress));
+  Serial.println(myGetTemperature(deviceAddress));
 //Serial.println(temp);
 }
 
@@ -268,8 +267,7 @@ int freeRam () {
 
 #if _DEBUGMODE
 void dummyMail(int recipientId) {
-  Serial.print(emailRecipients[recipientId]);
-  Serial.print("\r\n");
+  Serial.println(emailRecipients[recipientId]);
   notificationTime = millis();
 }
 #endif
@@ -279,55 +277,55 @@ void SendEmail(int recipientId) {
   boolean mailSent = false;
   while (!mailSent) {
     if (client.connect(smtp, 25)) {
-      Serial.print("connected\r\n");
+      Serial.println("connected");
       connectionSuccessfull = true;
     } 
     else {
-      Serial.print("connection failed\r\n");
+      Serial.println("connection failed");
     }
     delay(2000);
     if (client.available() && connectionSuccessfull) {
-      Serial.print("Sending email\r\n");
-      client.print(_SMTP_HELO);
+      Serial.println("Sending email");
+      client.println(_SMTP_HELO);
       delay(50);
-      client.print(_SMTP_FROM);
+      client.println(_SMTP_FROM);
       delay(50);
       client.print("RCPT TO:");
-      client.print(emailRecipients[recipientId]);
+      client.println(emailRecipients[recipientId]);
       delay(50);
-      client.print("DATA\r\n");
+      client.println("DATA");
       delay(50);
-      client.print("From: <seremetis@hol.gr>\r\n");
+      client.println("From: <seremetis@hol.gr>");
       client.print("TO: ");
-      client.print(emailRecipients[recipientId]);
-      client.print("\r\nSUBJECT: 3A\r\n\r\n");
-//      client.print();
-      client.print(_STORE);
-      client.print("\r\nTEST MAIL\r\n");
-      //client.print(textmessage);
-      client.print(".\r\n");
+      client.println(emailRecipients[recipientId]);
+      client.println("SUBJECT: 3A");
+      client.println();
+      client.println(_STORE);
+      client.println("TEST MAIL");
+      //client.println(textmessage);
+      client.println(".");
       delay(100);
-      client.print("QUIT\r\n");
+      client.println("QUIT");
       notificationTime = millis();
 #if _DEBUGMODE
       printWiznetBuffer();
 #endif
-      Serial.print("ok\r\n");
+      Serial.println("ok");
       mailSent = true;
       client.stop();
     }
     else {
-      Serial.print("2.connection failed\r\n");
+      Serial.println("2.connection failed");
     }
   }
 }
 
 void SendSMS(int phoneId) {
   //  StartSMS
-  cell.print("AT+CMGF=1\r\n"); // set SMS mode to text
+  cell.println("AT+CMGF=1"); // set SMS mode to text
   cell.print("AT+CMGS=\"");
   cell.print(mobileRecipients[phoneId]);
-  cell.print("\"\r\n");
+  cell.println("\"");
   delay(500);
 
   //SendSMS main body
@@ -337,9 +335,9 @@ void SendSMS(int phoneId) {
   delay(500);
   cell.write(26);
   delay(500);
-  Serial.print(textmessage);
-  Serial.print("\r\nmessage sent to: ");
-  Serial.print(mobileRecipients[phoneId]);
+  Serial.println(textmessage);
+  Serial.print("message sent to: ");
+  Serial.println(mobileRecipients[phoneId]);
 
   notificationTime = millis();
 }
@@ -366,7 +364,7 @@ void loop(){
     Serial.print(now.month());
     Serial.print("/");
     Serial.print(now.year()); 
-    Serial.print("\r\n"); 
+    Serial.println(); 
     lastMinute = now.minute();
 
     for (int i = 0; i < 3; i++){
@@ -394,8 +392,7 @@ void loop(){
     } 
 
     //#if _DEBUGMODE
-    Serial.print(freeRam());
-    Serial.print("\r\n");
+    Serial.println(freeRam());
     //#endif
   }
 }

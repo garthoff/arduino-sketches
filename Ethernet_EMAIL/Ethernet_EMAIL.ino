@@ -146,7 +146,7 @@ if((millis() - notificationTime > timeBeetweenNotifications) || (notificationTim
   //
   //        //      textmessage += fridgeId;
 for (int i = 0; i < peopleToNotify; i++) {
-SendEMail(i);
+SendEmail(i);
 }
 }
   //    }
