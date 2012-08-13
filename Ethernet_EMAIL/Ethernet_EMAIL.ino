@@ -1,12 +1,14 @@
-//#define arapstore "GNR"
-//#define arapstore "PNX"
-//#define arapstore "OVR"
-//#define arapstore "TEI"
-//#define arapstore "ZKN"
-#define arapstore "BRX"
-
+//#define _STORE "GNR"
+//#define _STORE "PNX"
+//#define _STORE "OVR"
+//#define _STORE "TEI"
+//#define _STORE "ZKN"
+//#define _STORE "BRX"
+#define _STORE "LAB"
 #include <SPI.h>
 #include <Ethernet.h>
+
+String readString = String(100);
 
 //#include <SD.h>
 //#include <ICMPPing.h>
@@ -14,18 +16,23 @@
 //char buffer [256];
 
 //network configuration
+//network configuration
 byte mac[] = { 
   0x90, 0xA2, 0xDA, 0x0D, 0x69, 0xB3 }; //physical mac address
-//byte gateway[] = { 
-//  192, 168, 8, 1 };
-//byte subnet[] = {
-//  255, 255, 255, 0 };
+byte ip[] = { 
+  10, 10, 15, 71 }; // ip in lan
+byte subnet[] = { 
+  255, 255, 255, 0 };
+byte gateway[] = { 
+  10, 10, 15, 1 };
+//byte mydns[] = { 8, 8, 8, 8 }; //google dns
+byte mydns[] = { 
+  208, 67, 222, 222 }; //opendns
 
-IPAddress ip(192,168,8,198); // ip in lan
-IPAddress server(192,168,1,11); //kronos
+//IPAddress server( 194, 30, 193, 52); //kronos
 byte server1[] = { 
-//  192, 168, 1, 11 };
-  194, 30, 193, 52 };
+  //  192, 168, 1, 11 }; //kronos
+  194, 30, 193, 52 };  //smtp.hol.gr
 EthernetClient client;
 
 //String textmessage = String();
@@ -36,35 +43,59 @@ char* recipients[] = {
 const byte peopleToNotify = 3; //how many from the above list to notify, by order of precedence
 int fridgeId;
 
-void SendEMail(int recipientId) {
-  if (client.connect(server, 25)) {
+void printWiznetBuffer() {
+  char c = client.read();
+  for (int i=0; i<100; i++){
+    c = client.read();
+    Serial.print(c);
+  }
+}
+
+void SendEmail(int recipientId) {
+  if (client.connect(server1, 25)) {
     Serial.println("connected");
   } 
   else {
     Serial.println("connection failed");
   }
   delay(5000);
-  
+
   if (client.available()) {
     Serial.println("Sending email");
-    client.print("HELO ");
-    client.println(arapstore);
-    client.println("MAIL FROM:<arapis3a@otenet.gr>");
+    //    client.print("HELO ");
+    //    client.println(_STORE);
+    client.println("HELO smtp.hol.gr");
+    printWiznetBuffer();
+
+
+    delay(100);
+    client.println("MAIL FROM:<seremetis@hol.gr>");
+    printWiznetBuffer();
+
+    delay(100);
     //      client.println("RCPT TO:<bill@seremetis.net>");
     client.print("RCPT TO:");
     client.println(recipients[recipientId]);
+    printWiznetBuffer();
+
+    delay(100);
     client.println("DATA");
-    client.println("From: <arapis3a@otenet.gr>");
-    //      client.println("TO: <bill@seremetis.net>");
-    client.print("TO: ");
-    client.println(recipients[recipientId]);
-    client.println("SUBJECT: Arduino automatic email");
-    client.println();
-    client.println(arapstore);
-    client.println("Refridgerator Malfunction (nightly build)");
-    
+
+    delay(100);
+    //    client.println("From: <seremetis@hol.gr>");
+    //    //      client.println("TO: <bill@seremetis.net>");
+    //    client.print("TO: ");
+    //    client.println(recipients[recipientId]);
+    //    client.println("SUBJECT: Arduino automatic email");
+    //    client.println();
+    client.println(_STORE);
+    client.println("TEST MAIL");
+
     //      client.println(textmessage);
     client.println(".");
+    printWiznetBuffer();
+    Serial.println("done");
+
     delay(200);
     client.println("QUIT");
     notificationTime = millis();
@@ -80,7 +111,7 @@ boolean checkFridges() {
 void setup()
 
 {
-  Ethernet.begin(mac, ip);
+  Ethernet.begin(mac, ip, mydns, gateway, subnet);
   Serial.begin(9600);
   Serial.println(Ethernet.localIP());
   delay(5000);
@@ -89,38 +120,46 @@ void setup()
     pinMode(fridgeId+2, INPUT);
   }
 
-//  Serial.println("connecting...");
+  //  Serial.println("connecting...");
 
   //  ICMPPing ping(pingSocket);
   //  ping(4, server1, buffer);
   //  Serial.println(buffer);
   //  delay(500);
 
-  
+
 }
 
-
+int flag = 0;
 void loop() {
-  for (fridgeId = 0; fridgeId < 6; fridgeId++) {
-//    Serial.println(digitalRead(fridgeId+2));
-    if (digitalRead(fridgeId+2) == HIGH) {
-//      Serial.println(fridgeId+1);
-//      Serial.println(digitalRead(fridgeId+2));
-//      Serial.println("execute");
+  //  for (fridgeId = 0; fridgeId < 6; fridgeId++) {
+  ////    Serial.println(digitalRead(fridgeId+2));
+  //    if (digitalRead(fridgeId+2) == HIGH) {
+  ////      Serial.println(fridgeId+1);
+  ////      Serial.println(digitalRead(fridgeId+2));
+  ////      Serial.println("execute");
+  //
+if((millis() - notificationTime > timeBeetweenNotifications) || (notificationTime == 0)) {
 
-      if((millis() - notificationTime > timeBeetweenNotifications) || (notificationTime == 0)) {
+  //        //    Serial.println("in loop if 2");
+  //        //      textmessage = _STORE;
+  //
+  //        //      textmessage += fridgeId;
+for (int i = 0; i < peopleToNotify; i++) {
+SendEMail(i);
+}
+}
+  //    }
+  //  }
 
-        //    Serial.println("in loop if 2");
-        //      textmessage = arapstore;
-
-        //      textmessage += fridgeId;
-        for (int i = 0; i < peopleToNotify; i++) {
-          SendEMail(i);
-        }
-      }
-    }
+  if (flag == 0) {
+    SendEmail(0);
+    flag = 1;
   }
+
   delay(5000);
+
+
 
 
   //    ICMPPing ping(pingSocket);
@@ -142,3 +181,4 @@ void loop() {
   //   }
 
 }
+
