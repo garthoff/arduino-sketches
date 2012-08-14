@@ -1,7 +1,7 @@
 #ifndef __MMC_H__
 #define __MMC_H__
 
-#include <Arduino.h>
+#include <WProgram.h>
 #include <inttypes.h>
 
 

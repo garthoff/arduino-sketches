@@ -33,7 +33,7 @@
 
 #include "mmc.h"
 #include "microfat.h"
-#include <Arduino.h>
+#include <WProgram.h>
 
 #ifndef SDuFAT_h
 #define SDuFAT_h

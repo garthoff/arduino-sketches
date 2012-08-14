@@ -5,7 +5,7 @@
 #include <SdFatUtil.h>
 
 // SD chip select pin
-const uint8_t chipSelect = SS_PIN;
+const uint8_t chipSelect = SS;
 
 #define FILE_SIZE_MB 5
 #define FILE_SIZE (1000000UL*FILE_SIZE_MB)
@@ -38,7 +38,7 @@ void setup() {
 
   // initialize the SD card at SPI_FULL_SPEED for best performance.
   // try SPI_HALF_SPEED if bus errors occur.
-  if (!sd.init(SPI_FULL_SPEED, chipSelect)) sd.initErrorHalt();
+  if (!sd.begin(chipSelect, SPI_FULL_SPEED)) sd.initErrorHalt();
 
   cout << pstr("Type is FAT") << int(sd.vol()->fatType()) << endl;
 

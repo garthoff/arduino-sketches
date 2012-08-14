@@ -1,5 +1,5 @@
 /* Arduino SdFat Library
- * Copyright (C) 2009 by William Greiman
+ * Copyright (C) 2012 by William Greiman
  *
  * This file is part of the Arduino SdFat Library
  *
@@ -49,7 +49,7 @@ int16_t SdFile::write(const void* buf, uint16_t nbyte) {
 //------------------------------------------------------------------------------
 /** Write a byte to a file. Required by the Arduino Print class.
  * \param[in] b the byte to be written.
- * Use writeError to check for errors.
+ * Use getWriteError to check for errors.
  */
 #if ARDUINO < 100
 void SdFile::write(uint8_t b) {
@@ -63,7 +63,7 @@ size_t SdFile::write(uint8_t b) {
 //------------------------------------------------------------------------------
 /** Write a string to a file. Used by the Arduino Print class.
  * \param[in] str Pointer to the string.
- * Use writeError to check for errors.
+ * Use getWriteError to check for errors.
  */
 #if ARDUINO < 100
 void SdFile::write(const char* str) {
@@ -77,7 +77,7 @@ int16_t SdFile::write(const char* str) {
 //------------------------------------------------------------------------------
 /** Write a PROGMEM string to a file.
  * \param[in] str Pointer to the PROGMEM string.
- * Use writeError to check for errors.
+ * Use getWriteError to check for errors.
  */
 void SdFile::write_P(PGM_P str) {
   for (uint8_t c; (c = pgm_read_byte(str)); str++) write(c);
@@ -85,7 +85,7 @@ void SdFile::write_P(PGM_P str) {
 //------------------------------------------------------------------------------
 /** Write a PROGMEM string followed by CR/LF to a file.
  * \param[in] str Pointer to the PROGMEM string.
- * Use writeError to check for errors.
+ * Use getWriteError to check for errors.
  */
 void SdFile::writeln_P(PGM_P str) {
   write_P(str);

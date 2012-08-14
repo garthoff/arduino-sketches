@@ -1,5 +1,5 @@
 /* Arduino SdFat Library
- * Copyright (C) 2009 by William Greiman
+ * Copyright (C) 2012 by William Greiman
  *
  * This file is part of the Arduino SdFat Library
  *
@@ -28,7 +28,7 @@
 #include <ArduinoStream.h>
 //------------------------------------------------------------------------------
 /** SdFat version YYYYMMDD */
-#define SD_FAT_VERSION 20111205
+#define SD_FAT_VERSION 20120609
 //------------------------------------------------------------------------------
 /**
  * \class SdFat
@@ -37,6 +37,21 @@
 class SdFat {
  public:
   SdFat() {}
+  /**
+   * Initialize an SdFat object. Arduino friendly version of init.
+   *
+   * Initializes the SD card, SD volume, and root directory.
+   *
+   * \param[in] chipSelectPin SD chip select pin. See Sd2Card::init().
+   * \param[in] sckRateID value for SPI SCK rate. See Sd2Card::init().
+   *
+   * \return The value one, true, is returned for success and
+   * the value zero, false, is returned for failure.
+   */
+  bool begin(uint8_t chipSelectPin = SD_CHIP_SELECT_PIN,
+    uint8_t sckRateID = SPI_FULL_SPEED) {
+    return init(sckRateID, chipSelectPin);
+  }
   /** \return a pointer to the Sd2Card object. */
   Sd2Card* card() {return &card_;}
   bool chdir(bool set_cwd = false);
@@ -63,14 +78,26 @@ class SdFat {
   bool remove(const char* path);
   bool rename(const char *oldPath, const char *newPath);
   bool rmdir(const char* path);
+
   bool truncate(const char* path, uint32_t length);
   /** \return a pointer to the SdVolume object. */
   SdVolume* vol() {return &vol_;}
   /** \return a pointer to the volume working directory. */
   SdBaseFile* vwd() {return &vwd_;}
+  //----------------------------------------------------------------------------
+  // static functions for stdOut
+  /**
+   *  Set stdOut Print stream for messages.
+   * \param[in] stream The new Print stream.
+   */
+  static void setStdOut(Print* stream) {stdOut_ = stream;}
+  /** \return Print stream for messages. */
+  static Print* stdOut() {return stdOut_;}
+
  private:
   Sd2Card card_;
   SdVolume vol_;
   SdBaseFile vwd_;
+  static Print* stdOut_;
 };
 #endif  // SdFat_h

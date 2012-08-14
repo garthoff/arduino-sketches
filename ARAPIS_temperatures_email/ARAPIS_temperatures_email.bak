@@ -6,12 +6,15 @@
 //#define _STORE "BRX"
 #define _STORE "LAB"
 
-//#define _SMTP_HELO "HELO KRONOS" //needs to be tested
-#define _SMTP_HELO "HELO smtp.hol.gr\n"
-#define _SMTP_FROM "MAIL FROM: <seremetis@hol.gr>\n"
+//#define _SMTP_HELO "HELO KRONOS" //needs to be teste
+//#define _SMTP_HELO "HELO smtp.hol.gr\n"
+#define _SMTP_HELO "HELO smtp.otenet.gr\n"
+//#define _SMTP_HELO "HELO mail.gmx.com\n"
+#define _SMTP_FROM "MAIL FROM: <srm@otenet.gr>\n"
 
-#define _DEBUGMODE 0 //set to 1 for debug mode, it prints more stuff to the serial and increases sketch size
-#define _SETMODE 0 //use this to set alarm thresholds
+
+#define _DEBUGMODE 1 //set to 1 for debug mode, it prints more stuff to the serial and increases sketch size
+#define _SETMODE 1 //use this to set alarm thresholds
 //#define _ENABLE_GSM 1 //set to 0 if you don't have a GSM shield
 //#define _ENABLE_EMAIL 1  //set to 0 if you do not want to send email alerts
 
@@ -26,11 +29,7 @@ SoftwareSerial cell(2,3); //create a software serial port for the GSM module
 #include "RTClib.h"
 RTC_DS1307 RTC;
 
-#include <SdFat.h>
-SdFat sd;
-SdFile myFile;
-
-const int chipSelect = 4; //sd chipselect pin
+//const int chipSelect = 4; //sd chipselect pin
 
 byte lastMinute = 0;
 byte alarmFlag;
@@ -41,8 +40,6 @@ const char* emailRecipients[] = {
 const  char* mobileRecipients[] = { "6997047042", "6993730101" };
 const byte peopleToNotify = 1; //how many from the above list to notify, by order of precedence
 String textmessage = String();
-String datastring = String();
-String convertionChar = String(4);
 
 //network configuration
 byte mac[] = { 
@@ -53,16 +50,18 @@ byte subnet[] = {
   255, 255, 255, 0 };
 byte gateway[] = { 
   10, 10, 15, 1 };
-byte mydns[] = {
-//  8, 8, 8, 8 }; //google dns
+//byte mydns[] = { 8, 8, 8, 8 }; //google dns
+byte mydns[] = { 
   208, 67, 222, 222 }; //opendns
+
 byte smtp[] = { 
   //  192, 168, 1, 11 }; //kronos
-  194, 30, 193, 52 };  //smtp.hol.gr
-
+//  194, 30, 193, 52 };  //smtp.hol.gr
+62, 103, 147, 202 }; //otenet
+//74,208,5,67 }; //gmx
 EthernetClient client;
 
-// Data wire is plugged into port # on the Arduino
+// Data wire is plugged into port 4 on the Arduino
 #define ONE_WIRE_BUS 7
 #define TEMPERATURE_PRECISION 9
 
@@ -93,12 +92,12 @@ void setup() {
   //Initialize GSM Module
   cell.begin(9600);
 //  delay(35000); //insert 35sec delay for the SIM card to connect to the network
-  cell.print(F("AT+SBAND=4\r\n")); //Set GSM to Cosmote/Wind. Look here: http://roamtheworldcellphones.com/gsmgreece
+  cell.println("AT+SBAND=4"); //Set GSM to Cosmote/Wind. Look here: http://roamtheworldcellphones.com/gsmgreece
   delay(500);
   //GSM should be fine by now
 
   if (! RTC.isrunning()) {
-    Serial.print(F("RTC is NOT running!\n"));
+    Serial.print("RTC is NOT running!\n");
     // following line sets the RTC to the date & time this sketch was compiled
     RTC.adjust(DateTime(__DATE__, __TIME__));
   }
@@ -108,18 +107,18 @@ void setup() {
 
 #if _DEBUGMODE
   // so I can keep track of what is loaded
-//  Serial.print("email with hol of temp sensors\nlocal ip: ");
-  Serial.print(Ethernet.localIP());
+  Serial.print("email with hol of temp sensors\nlocal ip: ");
+  Serial.println(Ethernet.localIP());
 
   // locate devices on the bus
-  Serial.print(F("\r\nFound "));
+  Serial.print("Locating devices...\nFound ");
 //  Serial.print("Found ");
   Serial.print(sensors.getDeviceCount(), DEC);
-  Serial.print(F(" devices.\nParasite: "));
+  Serial.println(" devices.\nParasite: ");
   // report parasite power requirements
 //  Serial.print("Parasite: "); 
-  if (sensors.isParasitePowerMode()) Serial.print(F("ON\r\n"));
-  else Serial.print(F("OFF\r\n"));
+  if (sensors.isParasitePowerMode()) Serial.println("ON");
+  else Serial.println("OFF");
 #endif
 
   // assign address manually.  the addresses below will beed to be changed
@@ -150,17 +149,18 @@ void setup() {
   for (int i = 0; i < NUMBER_OF_SENSORS; i++) {
     // assigns the first address found to t1
     if (!oneWire.search(thermos[i])) {
-      Serial.print(F("err")); //found an error
-      Serial.print(i);
+      Serial.print("unable to find"); //found an error
+      Serial.println(i);
     }
-    Serial.print(F("\nAdr:"));
+    Serial.print("Addr: ");
     printAddress(thermos[i]);
+    Serial.println();
 
     // set the resolution to 9 bit
     sensors.setResolution(thermos[i], TEMPERATURE_PRECISION);
 
-    Serial.print(F("\nRes:"));
-    Serial.print(sensors.getResolution(thermos[i]), DEC); 
+    Serial.print("Resol:");
+    Serial.println(sensors.getResolution(thermos[i]), DEC); 
   }
 
 #if _SETMODE
@@ -171,22 +171,6 @@ void setup() {
   sensors.setLowAlarmTemp(thermos[2], 25);
   sensors.setHighAlarmTemp(thermos[2], 31);
 #endif
-
-//SendSMS(0); //just for testing
-
-if (!sd.begin(chipSelect, SPI_HALF_SPEED)) sd.initErrorHalt();
-
-  // open the file for write at end like the Native SD library
-  if (!myFile.open("test.txt", O_RDWR | O_CREAT | O_AT_END)) {
-    sd.errorHalt("open fail");
-  }
-  // if the file opened okay, write to it:
-  Serial.print("Writing to test.txt...\r\n");
-  myFile.print("douleyei?\r\n");
-
-  // close the file:
-  myFile.close();
-  Serial.print("done\n");
 
 }
 
@@ -237,20 +221,24 @@ float myGetTemperature(DeviceAddress deviceAddress)
 // main function to print information about a device
 void printData(DeviceAddress deviceAddress)
 {
-  Serial.print("\nAdr:");
+  Serial.print("Address: ");
   printAddress(deviceAddress);
-//  Serial.print(" ");
-   Serial.print(myGetTemperature(deviceAddress));
-//   datastring = String(temp1);
-//   Serial.print(datastring);
-
+  Serial.print(" ");
+  //  float temp1 = myGetTemperature(deviceAddress);
+  //dtostrf(temp1, datastring
+  //  datastring += "," + ;
+  //Serial.println(temp1);
+//  char temp[5];
+//  sprintf(temp, " %f", myGetTemperature(deviceAddress));
+  Serial.println(myGetTemperature(deviceAddress));
+//Serial.println(temp);
 }
 
 void checkAlarm(DeviceAddress deviceAddress)
 {
   if (sensors.hasAlarm(deviceAddress))
   {
-    Serial.print(F("ALARM: "));
+    Serial.print("ALARM: ");
     printData(deviceAddress);
     alarmFlag = 1;
   }
@@ -272,16 +260,19 @@ void printWiznetBuffer() {
     Serial.print(c);
   }
 }
+#endif
 
+//#if _DEBUGMODE
 int freeRam () {
   extern int __heap_start, *__brkval; 
   int v; 
   return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval); 
 }
+//#endif
 
+#if _DEBUGMODE
 void dummyMail(int recipientId) {
-  Serial.print(emailRecipients[recipientId]);
-  Serial.print("\r\n");
+  Serial.println(emailRecipients[recipientId]);
   notificationTime = millis();
 }
 #endif
@@ -291,54 +282,61 @@ void SendEmail(int recipientId) {
   boolean mailSent = false;
   while (!mailSent) {
     if (client.connect(smtp, 25)) {
-      Serial.print(F("conOk\n"));
+      Serial.println("connected");
       connectionSuccessfull = true;
+      #if _DEBUGMODE
+      printWiznetBuffer();
+#endif
     } 
     else {
-      Serial.print(F("conFail\n"));
+      Serial.println("connection failed");
+      #if _DEBUGMODE
+      printWiznetBuffer();
+#endif
     }
     delay(2000);
     if (client.available() && connectionSuccessfull) {
-//      Serial.print("Sending email\r\n");
-      client.print(F(_SMTP_HELO));
+      Serial.println("Sending email");
+      client.println(_SMTP_HELO);
       delay(50);
-      client.print(F(_SMTP_FROM));
+      client.println(_SMTP_FROM);
       delay(50);
-      client.print(F("RCPT TO:"));
-      client.print(emailRecipients[recipientId]);
+      client.print("RCPT TO:");
+      client.println(emailRecipients[recipientId]);
       delay(50);
-      client.print(F("\nDATA\n"));
+      client.println("DATA");
       delay(50);
-      client.print(F("From: <seremetis@hol.gr>\nTO: "));
-//      client.print("TO: ");
-      client.print(emailRecipients[recipientId]);
-      client.print(F("\nSUBJECT: 3A\n\n"));
-      client.print(F(_STORE));
-      client.print(F("\nTEST MAIL\n"));
-      //client.print(textmessage);
-      client.print(F(".\n"));
+      client.println("From: <seremetis@hol.gr>");
+      client.print("TO: ");
+      client.println(emailRecipients[recipientId]);
+      client.println("SUBJECT: 3A");
+      client.println();
+      client.println(_STORE);
+      client.println("TEST MAIL");
+      //client.println(textmessage);
+      client.println(".");
       delay(100);
-      client.print(F("QUIT\n"));
+      client.println("QUIT");
       notificationTime = millis();
 #if _DEBUGMODE
       printWiznetBuffer();
 #endif
-//      Serial.print("ok\r\n");
+      Serial.println("ok");
       mailSent = true;
       client.stop();
     }
     else {
-      Serial.print(F("conFail2\n"));
+      Serial.println("2.connection failed");
     }
   }
 }
 
 void SendSMS(int phoneId) {
   //  StartSMS
-  cell.print(F("AT+CMGF=1\r\n")); // set SMS mode to text
-  cell.print(F("AT+CMGS=\""));
+  cell.println("AT+CMGF=1"); // set SMS mode to text
+  cell.print("AT+CMGS=\"");
   cell.print(mobileRecipients[phoneId]);
-  cell.print(F("\"\r\n"));
+  cell.println("\"");
   delay(500);
 
   //SendSMS main body
@@ -348,34 +346,36 @@ void SendSMS(int phoneId) {
   delay(500);
   cell.write(26);
   delay(500);
-  Serial.print(textmessage);
-  Serial.print(F("\nsent to: "));
-  Serial.print(mobileRecipients[phoneId]);
+  Serial.println(textmessage);
+  Serial.print("message sent to: ");
+  Serial.println(mobileRecipients[phoneId]);
 
   notificationTime = millis();
 }
 
 void loop(){
+  //  datastring = "";
   DateTime now = RTC.now();
-//  if (now.minute() != lastMinute) {
-  if (1){
+  if (now.minute() != lastMinute) {
+    //if (1) {
 
-//    Serial.print("Requesting temperatures...");
+#if _DEBUGMODE
+    Serial.print("Requesting temperatures...");
+#endif
     // call sensors.requestTemperatures() to issue a global temperature 
     // request to all devices on the bus
     sensors.requestTemperatures();
 
-//    Serial.print("\n");
-//    Serial.print(now.hour());
-//    printDigits(now.minute());
-//    printDigits(now.second());
-//    Serial.print(" ");
-//    Serial.print(now.day());
-//    Serial.print("/");
-//    Serial.print(now.month());
-//    Serial.print("/");
-//    Serial.print(now.year()); 
-//    Serial.print("\r\n"); 
+    Serial.print(now.hour());
+    printDigits(now.minute());
+    printDigits(now.second());
+    Serial.print(" ");
+    Serial.print(now.day());
+    Serial.print("/");
+    Serial.print(now.month());
+    Serial.print("/");
+    Serial.print(now.year()); 
+    Serial.println(); 
     lastMinute = now.minute();
 
     for (int i = 0; i < 3; i++){
@@ -398,20 +398,15 @@ void loop(){
       }
       //send sms after emails, because they need more time to be completed
       for (int i=0; i<peopleToNotify; i++) {
-//           SendSMS(i);
+           SendSMS(i);
       }
     } 
 
-//#if _DEBUGMODE
-    Serial.print(F("\n\n"));
-    Serial.print(freeRam());
-//#endif
+    //#if _DEBUGMODE
+    Serial.println(freeRam());
+    //#endif
   }
 }
 
-int freeRam () {
-  extern int __heap_start, *__brkval; 
-  int v; 
-  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval); 
-}
+
 

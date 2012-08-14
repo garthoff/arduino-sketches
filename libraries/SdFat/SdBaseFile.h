@@ -1,5 +1,5 @@
 /* Arduino SdFat Library
- * Copyright (C) 2009 by William Greiman
+ * Copyright (C) 2012 by William Greiman
  *
  * This file is part of the Arduino SdFat Library
  *
@@ -26,9 +26,9 @@
 #include <avr/pgmspace.h>
 #if ARDUINO < 100
 #include <WProgram.h>
-#else  // ARDUINO
+#else  // ARDUINO < 100
 #include <Arduino.h>
-#endif  // ARDUINO
+#endif  // ARDUINO < 100
 #include <SdFatConfig.h>
 #include <SdVolume.h>
 //------------------------------------------------------------------------------
@@ -193,6 +193,10 @@ class SdBaseFile {
    * for true after calls to print() and/or write().
    */
   bool writeError;
+  /** \return value of writeError */
+  bool getWriteError() {return writeError;}
+  /** Set writeError to zero */
+  void clearWriteError() {writeError = 0;}
   //----------------------------------------------------------------------------
   // helpers for stream classes
   /** get position for streams
@@ -372,6 +376,7 @@ class SdBaseFile {
 //------------------------------------------------------------------------------
 // Deprecated functions  - suppress cpplint warnings with NOLINT comment
 #if ALLOW_DEPRECATED_FUNCTIONS && !defined(DOXYGEN)
+
  public:
   /** \deprecated Use:
    * bool contiguousRange(uint32_t* bgnBlock, uint32_t* endBlock);

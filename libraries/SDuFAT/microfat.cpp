@@ -1,4 +1,4 @@
-#include <Arduino.h>
+#include <WProgram.h>
 #include "microfat.h"
 #include "mmc.h"
 
