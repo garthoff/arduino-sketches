@@ -10,8 +10,8 @@
 #define _SMTP_HELO "HELO smtp.hol.gr\n"
 #define _SMTP_FROM "MAIL FROM: <seremetis@hol.gr>\n"
 
-#define _DEBUGMODE 0 //set to 1 for debug mode, it prints more stuff to the serial and increases sketch size
-#define _SETMODE 0 //use this to set alarm thresholds
+#define _DEBUGMODE 1 //set to 1 for debug mode, it prints more stuff to the serial and increases sketch size
+#define _SETMODE 1 //use this to set alarm thresholds
 //#define _ENABLE_GSM 1 //set to 0 if you don't have a GSM shield
 //#define _ENABLE_EMAIL 1  //set to 0 if you do not want to send email alerts
 
@@ -43,6 +43,7 @@ const byte peopleToNotify = 1; //how many from the above list to notify, by orde
 String textmessage = String();
 String datastring = String();
 String convertionChar = String(4);
+int recordId = 0;
 
 //network configuration
 byte mac[] = { 
@@ -174,20 +175,6 @@ void setup() {
 
 //SendSMS(0); //just for testing
 
-if (!sd.begin(chipSelect, SPI_HALF_SPEED)) sd.initErrorHalt();
-
-  // open the file for write at end like the Native SD library
-  if (!myFile.open("test.txt", O_RDWR | O_CREAT | O_AT_END)) {
-    sd.errorHalt("open fail");
-  }
-  // if the file opened okay, write to it:
-  Serial.print("Writing to test.txt...\r\n");
-  myFile.print("douleyei?\r\n");
-
-  // close the file:
-  myFile.close();
-  Serial.print("done\n");
-
 }
 
 // function to print a device address
@@ -239,18 +226,18 @@ void printData(DeviceAddress deviceAddress)
 {
   Serial.print("\nAdr:");
   printAddress(deviceAddress);
-//  Serial.print(" ");
    Serial.print(myGetTemperature(deviceAddress));
-//   datastring = String(temp1);
-//   Serial.print(datastring);
-
+/*   int temp1 = myGetTemperature(deviceAddress);
+   datastring = String(temp1);
+   Serial.print(temp1);
+*/
 }
 
 void checkAlarm(DeviceAddress deviceAddress)
 {
   if (sensors.hasAlarm(deviceAddress))
   {
-    Serial.print(F("ALARM: "));
+    Serial.print(F("\nALARM: "));
     printData(deviceAddress);
     alarmFlag = 1;
   }
@@ -356,6 +343,7 @@ void SendSMS(int phoneId) {
 }
 
 void loop(){
+  datastring = "";
   DateTime now = RTC.now();
 //  if (now.minute() != lastMinute) {
   if (1){
@@ -391,7 +379,7 @@ void loop(){
     //send emails at first
     if ((notificationTime == 0) && alarmFlag) {
       for (int i = 0; i < peopleToNotify; i++) {
-        SendEmail(i);
+//        SendEmail(i);
 #if _DEBUGMODE
         dummyMail(i);
 #endif
@@ -406,12 +394,24 @@ void loop(){
     Serial.print(F("\n\n"));
     Serial.print(freeRam());
 //#endif
+
+    logToSD();
+    recordId++;
   }
 }
 
-int freeRam () {
-  extern int __heap_start, *__brkval; 
-  int v; 
-  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval); 
-}
+void logToSD() {
+  if (!sd.begin(chipSelect, SPI_HALF_SPEED)) sd.initErrorHalt();
 
+  // open the file for write at end like the Native SD library
+  if (!myFile.open("test.txt", O_RDWR | O_CREAT | O_AT_END)) {
+    sd.errorHalt("open fail");
+  }
+
+  // if the file opened okay, write to it:
+  Serial.print("Writing to test.txt...\r\n");
+  myFile.print(recordId);
+
+  // close the file:
+  myFile.close();
+}

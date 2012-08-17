@@ -269,7 +269,7 @@ int SDuFAT::cat(const char* filename)
               Serial.println();
               return 0;
             }
-            Serial.print(buffer[i],BYTE);
+            Serial.write(buffer[i]);
           }
 
         } 
@@ -443,7 +443,7 @@ int SDuFAT::append(const char* filename)
     while (!Serial.available()) {
     };
     inByte = Serial.read();
-    Serial.print(inByte, BYTE);
+    Serial.write(inByte);
     if (inByte != EOL) {
       data[count] = inByte;
     } 
